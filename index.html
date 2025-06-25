@@ -1,18 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
+    <meta charset="UTF-8" />
     <title>Prueba Firebase Hosting + Storage</title>
-    <!-- SDKs compat (para HTML directo, sin build) -->
+    <!-- SDKs de Firebase (compatibles con HTML directo) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      #userInfo {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
-    <h1>Prueba Firebase Hosting + Storage</h1>
+    <h1>🔥 Prueba Firebase Hosting + Storage</h1>
 
     <button onclick="login()">Iniciar sesión con Google</button>
+    <button onclick="logout()">Cerrar sesión</button><br><br>
+
     <input type="file" id="fileInput">
     <button onclick="uploadFile()">Subir archivo</button>
+
+    <p id="userInfo">No has iniciado sesión.</p>
 
     <script>
       // Configuración de tu proyecto Firebase
@@ -30,15 +50,39 @@
       const auth = firebase.auth();
       const storage = firebase.storage();
 
+      // Función de login con Google
       function login() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then(result => {
-          alert("Sesión iniciada como " + result.user.email);
-        }).catch(error => {
-          console.error("Error al iniciar sesión:", error);
-        });
+        auth.signInWithPopup(provider)
+          .then(result => {
+            const user = result.user;
+            document.getElementById("userInfo").innerText = `👋 Hola, ${user.displayName} (${user.email})`;
+          })
+          .catch(error => {
+            console.error("Error al iniciar sesión:", error);
+            alert("Error en login: " + error.message);
+          });
       }
 
+      // Función de logout
+      function logout() {
+        auth.signOut()
+          .then(() => {
+            document.getElementById("userInfo").innerText = "Sesión cerrada";
+            alert("Saliste correctamente.");
+          });
+      }
+
+      // Listener para detectar si el usuario ya está logueado
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          document.getElementById("userInfo").innerText = `👋 Hola, ${user.displayName} (${user.email})`;
+        } else {
+          document.getElementById("userInfo").innerText = "No has iniciado sesión.";
+        }
+      });
+
+      // Función para subir archivo
       function uploadFile() {
         const user = auth.currentUser;
         if (!user) return alert("Primero iniciá sesión");
@@ -47,11 +91,14 @@
         if (!file) return alert("Seleccioná un archivo");
 
         const ref = storage.ref(`archivos/${user.uid}/${file.name}`);
-        ref.put(file).then(() => {
-          alert("Archivo subido con éxito");
-        }).catch(error => {
-          console.error("Error al subir:", error);
-        });
+        ref.put(file)
+          .then(() => {
+            alert("✅ Archivo subido con éxito");
+          })
+          .catch(error => {
+            console.error("Error al subir:", error);
+            alert("❌ Error al subir archivo: " + error.message);
+          });
       }
     </script>
   </body>
