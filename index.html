@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>FaltaUno Test</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"></script>
+</head>
+<body>
+  <h1>Prueba Firebase Hosting + Storage</h1>
+  <button onclick="login()">Login con Google</button>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Subir Archivo</button>
+  <div id="output"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA-U9Jba2MGhGNMc5zOeejEJz6wEV2hIM",
+      authDomain: "falta-unov2.firebaseapp.com",
+      projectId: "falta-unov2",
+      storageBucket: "falta-unov2.appspot.com",
+      messagingSenderId: "605906272324",
+      appId: "1:605906272324:web:615e3287ac52c418877178"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then(result => {
+        document.getElementById("output").innerText = "Logueado como: " + result.user.email;
+      }).catch(error => {
+        console.error("Error login:", error);
+      });
+    }
+
+    function uploadFile() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Seleccioná un archivo");
+      const user = auth.currentUser;
+      if (!user) return alert("Tenés que loguearte antes");
+      const path = `user_uploads/${user.uid}/${file.name}`;
+      const ref = storage.ref(path);
+      ref.put(file).then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+      }).then(url => {
+        document.getElementById("output").innerText = "Archivo subido: " + url;
+      }).catch(error => {
+        console.error("Error subiendo archivo:", error);
+      });
+    }
+  </script>
+</body>
+</html>
